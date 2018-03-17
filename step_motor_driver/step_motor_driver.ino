@@ -51,8 +51,9 @@ void dipping(int height)
       steps_left--;
     }
   }
-  Direction=!Direction;
-  steps_left=height / CM_PER_CIRCLE*steps_left;
+  Direction=0;
+  steps_left = height/CM_PER_CIRCLE*STEP_PER_CIRCLE;
+
   
    while(steps_left>0){
     currentMillis = micros();
@@ -63,8 +64,8 @@ void dipping(int height)
       steps_left--;
     }
   }
-  Direction=!Direction;
-  steps_left=height / CM_PER_CIRCLE*steps_left;
+  Direction=1;
+  steps_left = height/CM_PER_CIRCLE*STEP_PER_CIRCLE;
 }
 
 void stepper(int xw){
