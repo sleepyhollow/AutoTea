@@ -21,18 +21,23 @@ void setup() {
   lcd.begin(16, 2);
 
   
-  lcd.print("fml");
+  
 }
 
 void loop() {
   // Turn on display
-  //lcd.display();
+  lcd.display();
 
   // Print a message to display
-  //lcd.print("fml");
+  lcd.print("fml");
 
+  delay(1000);
+
+  lcd.clear();
+
+  lcd.noDisplay();
   // Set cursor to column and row number
-  lcd.setCursor(0, 1);
+  //lcd.setCursor(0, 1);
   // Print numbe of secs since reset
-  lcd.print(millis() / 1000);
+  //lcd.print(millis() / 1000);
 }
