@@ -1,6 +1,12 @@
 #include <LiquidCrystal.h>
 
-// Display pins to board pins
+// Messages
+const char MSG_ATTACH_TEABAG[] = "Attach teabag";
+const char MSG_DIPPING[] = "Dipping";
+const char MSG_DONE[] = "Done";
+const char MSG_CLEANUP[] = "Remove teabag";
+
+// Assign display pins to board pins
 const int LCD_RS = 12,
           LCD_EN = 11,
           LCD_D4 = 5,
@@ -29,7 +35,7 @@ void loop() {
   lcd.display();
 
   // Print a message to display
-  lcd.print("fml");
+  lcd.print(MSG_DIPPING);
 
   delay(1000);
 
