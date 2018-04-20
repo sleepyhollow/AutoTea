@@ -1,3 +1,4 @@
+// https://www.arduino.cc/en/Reference/LiquidCrystal
 #include <LiquidCrystal.h>
 
 /* Diagrams
@@ -51,19 +52,20 @@ void setup() {
 }
 
 void loop() {
-  // Turn on display
-  lcd.display();
+  // Show display content
+  //lcd.display();
 
   // Print a message to display
   lcd.print(MSG_DIPPING);
 
-  delay(1000);
+  
+  // Hide display content
+  //lcd.noDisplay();
+  
+  //delay(1000);
 
-  lcd.clear();
-
-  lcd.noDisplay();
   // Set cursor to column and row number
-  //lcd.setCursor(0, 1);
+  //lcd.setCursor(0, 0);
   // Print numbe of secs since reset
   //lcd.print(millis() / 1000);
 }
