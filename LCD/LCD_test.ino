@@ -31,11 +31,11 @@ const int LCD_RS = 12,
           LCD_D7 = 2;
 
 // Message strings
-const char MSG_ATTACH_TEABAG[] = "Attach teabag";
-const char MSG_DIPPING[] = "Dipping";
-const char MSG_WAIT[] = "Please wait";
-const char MSG_DONE[] = "Done";
-const char MSG_CLEANUP[] = "Remove teabag";
+const String MSG_ATTACH_TEABAG = "Attach teabag";
+const String MSG_DIPPING = "Dipping";
+const String MSG_WAIT = "Please wait";
+const String MSG_DONE = "Done";
+const String MSG_CLEANUP = "Remove teabag";
 
 // Initialize display
 LiquidCrystal lcd(LCD_RS,
@@ -48,24 +48,47 @@ LiquidCrystal lcd(LCD_RS,
 void setup() {
   // Set display's number of columns and rows
   lcd.begin(16, 2);
-
+  // Print a message to display
+  lcd.print(MSG_DIPPING);        
 }
 
 void loop() {
   // Show display content
   //lcd.display();
 
-  // Print a message to display
-  lcd.print(MSG_DIPPING);
+  
 
   
   // Hide display content
   //lcd.noDisplay();
   
-  //delay(1000);
-
+  delay(1000);
+  scrollText(MSG_ATTACH_TEABAG);
+          
   // Set cursor to column and row number
   //lcd.setCursor(0, 0);
   // Print numbe of secs since reset
   //lcd.print(millis() / 1000);
+}
+
+// https://www.arduino.cc/en/Tutorial/LiquidCrystalScroll
+void scrollText(String str) {
+ // scroll 13 positions (string length) to the left
+  // to move it offscreen left:
+  for (int positionCounter = 0; positionCounter < str.length() / 2; positionCounter++) {
+    // scroll one position left:
+    lcd.scrollDisplayLeft();
+    // wait a bit:
+    delay(150);
+  }
+
+  // scroll 29 positions (string length + display length) to the right
+  // to move it offscreen right:
+  for (int positionCounter = 0; positionCounter < str.length() / 2; positionCounter++) {
+    // scroll one position right:
+    lcd.scrollDisplayRight();
+    // wait a bit:
+    delay(150);
+  }
+
 }
