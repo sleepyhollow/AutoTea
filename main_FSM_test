@@ -23,12 +23,23 @@ LCD Pin             Potentiometer Pin             Arduino Mega 2560 Pin
 16(Bkl-)                                          GND
 */
 
+static int state;
 
 void setup() {
-  // Serial out
+  // Serial port for debug
   //Serial.begin(9600);
   
-  // For the Ultrasonic sensor
+  // FSM states
+  enum State {
+    INITIAL,
+    WAIT_FOR_BAG,
+    DIPPING,
+    REMOVE_BAG,
+    DONE
+  }
+  state = INITIAL;
+  
+  // For the ultrasonic sensor
   const int TRIG_PIN = 13;
   const int ECHO_PIN = 6;
   SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
@@ -47,13 +58,13 @@ void setup() {
   const String MSG_ATTACH_TEABAG = "Attach teabag";
   const String MSG_DIPPING = "Dipping...";
   const String MSG_WAIT = "Please wait";
-  const String MSG_DONE = "   Done!   ";
+  const String MSG_DONE = "Done!";
   const String MSG_CLEANUP = "Remove teabag";
   const String MSG_THANK_YOU = "Thank you :)";
 
-  // Declare Var to store distance measurements
-  long distanceInCm; // Store Distance In Cm
-  long distanceInInches; // Store Distance In Inches
+  // distance measurements
+  long distanceInCm;
+  long distanceInInches;
   
   // LED 
   pinMode(RED, OUTPUT);
@@ -77,8 +88,7 @@ void setup() {
   lcd.print(MSG_ATTACH_TEABAG); 
 
   // Wait until the User Pushes Button
-  while (digitalRead(SWITCH) == LOW) {
-  }
+  while (digitalRead(SWITCH) == LOW) {}
  
   lcd.print(MSG_WAIT);
   delay(2000);
@@ -129,7 +139,23 @@ void setup() {
 }
 
 void loop() {
-
+  switch state {
+    case INITIAL:
+    
+      break;
+    case WAIT_FOR_BAG:
+    
+      break;
+    case DIPPING:
+    
+      break;
+    case REMOVE_BAG:
+    
+      break;
+    case DONE:
+    
+      break;
+  }
 
 }
 
