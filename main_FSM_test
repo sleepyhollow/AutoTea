@@ -1,29 +1,8 @@
-
 #include <LiquidCrystal.h>
 #include <Stepper.h>
 #include <Servo.h>
 #include <SR04.h> // For ultrasonic sensor
 //https://github.com/BretStateham/28BYJ-48/tree/master/Arduino/Code
-
-/* Diagrams
-LCD Pin             Potentiometer Pin             Arduino Mega 2560 Pin
-1(GND)              GND                           GND
-2(Vcc)              Vcc                           +5V
-3(Vo)               Out
-4(RS)                                             12
-5(RW)
-6(EN)                                             11
-7(DB0)
-8(DB1)
-9(DB2)
-10(DB3)
-11(DB4)                                           5
-12(DB5)                                           4
-13(DB6)                                           3
-14(DB7)                                           2
-15(Bkl+)                                          +5V
-16(Bkl-)                                          GND
-*/
 
 // States of finite state machine
 enum State {
@@ -120,7 +99,7 @@ void setup() {
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_G, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
-
+  // try INPUT_PULLUP
   pinMode(PIN_SWITCH, INPUT);
 }
 
