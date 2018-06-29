@@ -1,6 +1,6 @@
 
 #include <LiquidCrystal.h> // For LCD
-#include <Stepper.h>  // For Steeper Motor
+#include <Stepper.h>
 #include <Servo.h>
 #include "SR04.h" // For ultrasonic sensor
 //https://github.com/BretStateham/28BYJ-48/tree/master/Arduino/Code
@@ -25,7 +25,7 @@ LCD Pin             Potentiometer Pin             Arduino Mega 2560 Pin
 16(Bkl-)                                          GND
 */
 
-// FSM states
+// States of finite state machine
 enum State {
   INITIAL,
   WAIT_FOR_BAG,
@@ -33,17 +33,13 @@ enum State {
   REMOVE_BAG,
   DONE
 };
-static int state;
 
 // For the ultrasonic sensor
 const int PIN_WATER_SENSOR_ECHO = 6;
 const int PIN_WATER_SENSOR_TRIG = 13;
-//const int PIN_CUP_SENSOR_ECHO = 6;
-//const int PIN_CUP_SENSOR_TRIG = 13;
-SR04 waterSensor = SR04(PIN_WATER_SENSOR_ECHO,PIN_WATER_SENSOR_TRIG);
-//SR04 cupSensor = SR04(PIN_CUP_SENSOR_ECHO, PIN_CUP_SENSOR_TRIG);
+//const int PIN_CUP_SENSOR_ECHO = ?;
+//const int PIN_CUP_SENSOR_TRIG = ?;
 
-// For the RGB LED
 const int PIN_LED_R = 52;
 const int PIN_LED_G = 50;
 const int PIN_LED_B = 48;
@@ -55,37 +51,18 @@ const int PIN_STEPPER1_4 = 5;
 // Steps per revolution [default 1500]
 const int STEPPER_STEPS_PER_REV = 1500;
 
-// Code for the stepper motor
-Stepper stepper1(STEPPER_STEPS_PER_REV,
-                  PIN_STEPPER1_1,
-                  PIN_STEPPER1_2,
-                  PIN_STEPPER1_3,
-                  PIN_STEPPER1_4);
-
 const int PIN_SERVO = 51;
-Servo servo1;
 
-const int potpin = 0;
-int val;
-
-// Switch's pin
 const int PIN_SWITCH = 53;
 
-// Assign display pins to board pins
-const int PIN_LCD_RS = 7,
-          PIN_LCD_EN = 8,
-          PIN_LCD_D4 = 9,
-          PIN_LCD_D5 = 10,
-          PIN_LCD_D6 = 11,
-          PIN_LCD_D7 = 12;
-
-// Initialize display
-LiquidCrystal lcd(PIN_LCD_RS,
-                  PIN_LCD_EN,
-                  PIN_LCD_D4,
-                  PIN_LCD_D5,
-                  PIN_LCD_D6,
-                  PIN_LCD_D7);
+const int LCD_WIDTH = 18;
+const int LCD_HEIGHT = 2;
+const int PIN_LCD_RS = 7;
+const int PIN_LCD_EN = 8;
+const int PIN_LCD_D4 = 9;
+const int PIN_LCD_D5 = 10;
+const int PIN_LCD_D6 = 11;
+const int PIN_LCD_D7 = 12;
 
 // Message strings
 const String MSG_ATTACH_TEABAG = "Attach Teabag";
@@ -95,100 +72,58 @@ const String MSG_DONE = "   Done!   ";
 const String MSG_CLEANUP = "Remove Teabag";
 const String MSG_THANK_YOU = "Thank You :) ";
 
-const int DIP_TIMES = 3;
+const int TIMES_TO_DIP = 3;
 
+static int activeState;
+static int oldState;
 int distanceToWater;
+const int potpin = 0;
+int val;
 
+// Initialize display
+LiquidCrystal lcd(PIN_LCD_RS,
+                  PIN_LCD_EN,
+                  PIN_LCD_D4,
+                  PIN_LCD_D5,
+                  PIN_LCD_D6,
+                  PIN_LCD_D7);
+
+Stepper stepper1(STEPPER_STEPS_PER_REV,
+                 PIN_STEPPER1_1,
+                 PIN_STEPPER1_2,
+                 PIN_STEPPER1_3,
+                 PIN_STEPPER1_4);
+
+Servo servo1;
+
+SR04 waterSensor = SR04(PIN_WATER_SENSOR_ECHO,
+                        PIN_WATER_SENSOR_TRIG);
+//SR04 cupSensor = SR04(PIN_CUP_SENSOR_ECHO,
+                        PIN_CUP_SENSOR_TRIG);
 
 void setup() {
-  state = INITIAL;
+  activeState = INITIAL;
   
   // Serial out for debug
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   // Set display's number of columns and rows
-  lcd.begin(18, 2);
-  
-  // Set the Stepper speed at 20rpm
+  lcd.begin(LCD_WIDTH, LCD_HEIGHT);
+   
+  // Set stepper speed at 20rpm
   stepper1.setSpeed(20);
   
   servo1.attach(PIN_SERVO);
   
-  // LED pin modes
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_G, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
 
   pinMode(PIN_SWITCH, INPUT);
-
-//  // Turn LED red
-//  digitalWrite(PIN_LED_R, HIGH);
-//  digitalWrite(PIN_LED_G, LOW);
-//  digitalWrite(PIN_LED_B, LOW);
-//
-//  // prompt user to place teabag
-//  lcd.print(MSG_ATTACH_TEABAG); 
-//
-//  // Wait till the User Pushes Button
-//  while (digitalRead(PIN_SWITCH) == LOW) {  /* Do Nothing, Just Wait the*/ }
-//  
-// 
-////  lcd.print(MSG_WAIT);
-////  delay(1000);
-//  lcd.clear();
-//
-//  distanceToWater=waterSensor.Distance(); /// Get the distance in cm  // 1″ = 2.54cm
-//  //distanceInInches = distanceInCm * 2.54;
-//  //lcd.print("Cup is (%ld)In or %ld (cm) Away",distanceInInches, distanceInCm);
-//  
-//  lcd.print("Cup is ");
-//  lcd.print(distanceToWater);
-//  lcd.print("cm away");
-//  delay(2000);
-//  lcd.clear();
-//
-//  if (distanceToWater < 8) {
-//    val = analogRead(potpin);
-//    val = map(val, 0, 1023, 0, 180);
-//    servo1.write(360);
-//    delay(3000);
-//  }
-//   
-//  // Display the Dipping Message With Flash
-//  setLedColor(0,255,0); // Green Color
-//  lcd.print(MSG_DIPPING);
-//
-//  for(int count = 0; count < DIP_TIMES; count++)
-//  {
-//    stepper1.step(STEPPER_STEPS_PER_REV);
-//    setLedColor(0,0,255); // Blue Color
-//    stepper1.step(-STEPPER_STEPS_PER_REV);
-//    setLedColor(0,255,0); // Green Color
-//  }
-//
-//  lcd.clear(); 
-//  setLedColor(255,0,0); // Red Color
-//  lcd.print(MSG_DONE); delay(3000);
-//  lcd.clear();
-//   
-//  lcd.print(MSG_CLEANUP); 
-//  setLedColor(255,0,255); // Purple Color
-//  while (digitalRead(PIN_SWITCH) == LOW) {  /* Do Nothing, Just Wait the*/ }
-//  lcd.clear();
-//   
-//  lcd.print(MSG_THANK_YOU);
-//  scrollText(MSG_THANK_YOU);
-//  delay(3000);
-//  stepper1.step(STEPPER_STEPS_PER_REV);
-//  lcd.clear();
-//  setLedColor(0,0,0); // Blank Light 
-//  exit(0); // exit Program
-     
 }
 
-
 void loop() {
-  switch (state) {
+  switch (aciveState) {
     case INITIAL:
       lcd.clear();
       
@@ -197,7 +132,7 @@ void loop() {
 
       delay(3000);
 
-      state = WAIT_FOR_BAG;
+      enterState(WAIT_FOR_BAG);
       break;
     case WAIT_FOR_BAG:
       lcd.clear();
@@ -207,11 +142,13 @@ void loop() {
 
       if (digitalRead(PIN_SWITCH) == HIGH)
       {
+        distanceToWater = waterSensor.Distance();
+
         lcd.print("Cup is ");
         lcd.print(distanceToWater);
         lcd.print("cm away");
         
-        state = DIPPING;
+        enterState(DIPPING);
       }  
       break;
     case DIPPING:
@@ -220,7 +157,6 @@ void loop() {
       lcd.print(MSG_DIPPING);
       setLedColor(0,255,0);
 
-      distanceToWater=waterSensor.Distance();
       if (distanceToWater < 8) {
         val = analogRead(potpin);
         val = map(val, 0, 1023, 0, 180);
@@ -228,14 +164,14 @@ void loop() {
         delay(3000);
       }
       
-      for(int count = 0; count < DIP_TIMES; count++) {
+      for(int count = 0; count < TIMES_TO_DIP; count++) {
         stepper1.step(STEPPER_STEPS_PER_REV);
-        setLedColor(0,0,255); // Blue Color
+        setLedColor(0, 0, 255); // Blue Color
         stepper1.step(-STEPPER_STEPS_PER_REV);
-        setLedColor(0,255,0); // Green Color
+        setLedColor(0, 255, 0); // Green Color
       }
 
-      state = REMOVE_BAG;
+      enterState(REMOVE_BAG);
       
       break;
     case REMOVE_BAG:
@@ -244,7 +180,7 @@ void loop() {
       lcd.print(MSG_CLEANUP);
 
       if (digitalRead(PIN_SWITCH) == HIGH) {
-        state = DONE;
+        enterState(DONE);
       }
     
       break;
@@ -254,25 +190,27 @@ void loop() {
       lcd.print(MSG_DONE);
       delay(3000);
       
-      state = INITIAL;
+      enterState(INITIAL);
       
       break;
   }
 }
 
+void enterState(State newState) {
+  oldState = activeState;
+  activeState = newState;
+}
 
 // define variables For LED
-int redValue;
-int greenValue;
-int blueValue;
-void setLedColor(int redValue, int greenValue, int blueValue)
-{
-  
+//int redValue;
+//int greenValue;
+//int blueValue;
+void setLedColor(int redValue, int greenValue, int blueValue) {  
   analogWrite(PIN_LED_R, redValue);
   analogWrite(PIN_LED_G, greenValue);
   analogWrite(PIN_LED_B, blueValue);
-   
 }
+
 // https://www.arduino.cc/en/Tutorial/LiquidCrystalScroll
 void scrollText(String str) {
  // scroll 13 positions (string length) to the left
@@ -292,5 +230,4 @@ void scrollText(String str) {
     // wait a bit:
     delay(150);
   }
-
 }
