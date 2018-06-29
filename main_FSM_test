@@ -1,8 +1,8 @@
 
-#include <LiquidCrystal.h> // For LCD
+#include <LiquidCrystal.h>
 #include <Stepper.h>
 #include <Servo.h>
-#include "SR04.h" // For ultrasonic sensor
+#include <SR04.h> // For ultrasonic sensor
 //https://github.com/BretStateham/28BYJ-48/tree/master/Arduino/Code
 
 /* Diagrams
@@ -34,7 +34,7 @@ enum State {
   DONE
 };
 
-const int LCD_WIDTH = 18;
+const int LCD_WIDTH = 16;
 const int LCD_HEIGHT = 2;
 const int PIN_LCD_RS = 7;
 const int PIN_LCD_EN = 8;
@@ -76,6 +76,8 @@ const int TIMES_TO_DIP = 3;
 
 static State activeState;
 static State oldState;
+static long currentTime;
+static long previousTime;
 int distanceToWater;
 const int potpin = 0;
 int val;
@@ -123,16 +125,19 @@ void setup() {
 }
 
 void loop() {
-  switch (aciveState) {
+  currentTime = millis();
+  
+  switch (activeState) {
     case INITIAL:
       lcd.clear();
       
       lcd.print("AutoTea");
       stepper1.step(STEPPER_STEPS_PER_REV);
 
-      delay(3000);
-
-      enterState(WAIT_FOR_BAG);
+      //delay(3000);
+      if (currentTime - previousTime >= 3000)
+        enterState(WAIT_FOR_BAG);
+        
       break;
     case WAIT_FOR_BAG:
       lcd.clear();
@@ -188,9 +193,10 @@ void loop() {
       lcd.clear();
 
       lcd.print(MSG_DONE);
-      delay(3000);
       
-      enterState(INITIAL);
+      //delay(3000);
+      if (currentTime - previousTime >= 3000)
+        enterState(INITIAL);
       
       break;
   }
