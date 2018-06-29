@@ -34,15 +34,14 @@ enum State {
   DONE
 };
 
-// For the ultrasonic sensor
-const int PIN_WATER_SENSOR_ECHO = 6;
-const int PIN_WATER_SENSOR_TRIG = 13;
-//const int PIN_CUP_SENSOR_ECHO = ?;
-//const int PIN_CUP_SENSOR_TRIG = ?;
-
-const int PIN_LED_R = 52;
-const int PIN_LED_G = 50;
-const int PIN_LED_B = 48;
+const int LCD_WIDTH = 18;
+const int LCD_HEIGHT = 2;
+const int PIN_LCD_RS = 7;
+const int PIN_LCD_EN = 8;
+const int PIN_LCD_D4 = 9;
+const int PIN_LCD_D5 = 10;
+const int PIN_LCD_D6 = 11;
+const int PIN_LCD_D7 = 12;
 
 const int PIN_STEPPER1_1 = 2;
 const int PIN_STEPPER1_2 = 4;
@@ -53,16 +52,17 @@ const int STEPPER_STEPS_PER_REV = 1500;
 
 const int PIN_SERVO = 51;
 
+// For the ultrasonic sensor
+const int PIN_WATER_SENSOR_ECHO = 6;
+const int PIN_WATER_SENSOR_TRIG = 13;
+//const int PIN_CUP_SENSOR_ECHO = ?;
+//const int PIN_CUP_SENSOR_TRIG = ?;
+
 const int PIN_SWITCH = 53;
 
-const int LCD_WIDTH = 18;
-const int LCD_HEIGHT = 2;
-const int PIN_LCD_RS = 7;
-const int PIN_LCD_EN = 8;
-const int PIN_LCD_D4 = 9;
-const int PIN_LCD_D5 = 10;
-const int PIN_LCD_D6 = 11;
-const int PIN_LCD_D7 = 12;
+const int PIN_LED_R = 52;
+const int PIN_LED_G = 50;
+const int PIN_LED_B = 48;
 
 // Message strings
 const String MSG_ATTACH_TEABAG = "Attach Teabag";
@@ -74,8 +74,8 @@ const String MSG_THANK_YOU = "Thank You :) ";
 
 const int TIMES_TO_DIP = 3;
 
-static int activeState;
-static int oldState;
+static State activeState;
+static State oldState;
 int distanceToWater;
 const int potpin = 0;
 int val;
