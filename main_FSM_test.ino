@@ -5,7 +5,7 @@
 //https://github.com/BretStateham/28BYJ-48/tree/master/Arduino/Code
 
 // States of finite state machine
-enum State {
+enum class State {
   INITIAL,
   WAIT_FOR_BAG,
   DIPPING,
@@ -34,8 +34,8 @@ const int PIN_SERVO = 51;
 // For the ultrasonic sensor
 const int PIN_WATER_SENSOR_ECHO = 6;
 const int PIN_WATER_SENSOR_TRIG = 13;
-//const int PIN_CUP_SENSOR_ECHO = ?;
-//const int PIN_CUP_SENSOR_TRIG = ?;
+const int PIN_CUP_SENSOR_ECHO = 24;
+const int PIN_CUP_SENSOR_TRIG = 26;
 
 const int PIN_SWITCH = 53;
 
@@ -58,8 +58,7 @@ static State oldState;
 static long currentTime;
 static long previousTime;
 int distanceToWater;
-const int potpin = 0;
-int val;
+int distanceToCup;
 
 // Initialize display
 LiquidCrystal lcd(PIN_LCD_RS,
@@ -76,17 +75,19 @@ Stepper stepper1(STEPPER_STEPS_PER_REV,
                  PIN_STEPPER1_4);
 
 Servo servo1;
+Servo servo2;
 
 SR04 waterSensor = SR04(PIN_WATER_SENSOR_ECHO,
                         PIN_WATER_SENSOR_TRIG);
-//SR04 cupSensor = SR04(PIN_CUP_SENSOR_ECHO,
-                        PIN_CUP_SENSOR_TRIG);
+                        
+SR04 cupSensor = SR04(PIN_CUP_SENSOR_ECHO,
+                      PIN_CUP_SENSOR_TRIG);
 
 void setup() {
-  activeState = INITIAL;
+  activeState = State::INITIAL;
   
   // Serial out for debug
-  //Serial.begin(9600);
+  Serial.begin(9600);
 
   // Set display's number of columns and rows
   lcd.begin(LCD_WIDTH, LCD_HEIGHT);
@@ -99,53 +100,59 @@ void setup() {
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_G, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
-  // try INPUT_PULLUP
-  pinMode(PIN_SWITCH, INPUT);
+  // LOW means switch is pressed
+  pinMode(PIN_SWITCH, INPUT_PULLUP); 
 }
 
 void loop() {
-  currentTime = millis();
-  
   switch (activeState) {
-    case INITIAL:
+    case State::INITIAL:
       lcd.clear();
       
       lcd.print("AutoTea");
       stepper1.step(STEPPER_STEPS_PER_REV);
 
       //delay(3000);
-      if (currentTime - previousTime >= 3000)
-        enterState(WAIT_FOR_BAG);
+      currentTime = millis();
+      if (currentTime - previousTime >= 3000) {
+        previousTime = currentTime;
+        enterState(State::WAIT_FOR_BAG);
+      }
         
       break;
-    case WAIT_FOR_BAG:
+    case State::WAIT_FOR_BAG:
       lcd.clear();
       
       // prompt user to place teabag
       lcd.print(MSG_ATTACH_TEABAG);
 
-      if (digitalRead(PIN_SWITCH) == HIGH)
-      {
-        distanceToWater = waterSensor.Distance();
+      if (digitalRead(PIN_SWITCH) == LOW) {
+        enterState(State::DIPPING);
+      }
 
-        lcd.print("Cup is ");
-        lcd.print(distanceToWater);
-        lcd.print("cm away");
-        
-        enterState(DIPPING);
-      }  
       break;
-    case DIPPING:
+      
+    case State::DIPPING:
       lcd.clear();
       
       lcd.print(MSG_DIPPING);
-      setLedColor(0,255,0);
+      setLedColor(0, 255, 0);
 
-      if (distanceToWater < 8) {
-        val = analogRead(potpin);
-        val = map(val, 0, 1023, 0, 180);
-        servo1.write(360);
-        delay(3000);
+      distanceToWater = waterSensor.Distance();
+        
+      currentTime = millis();
+      if (currentTime - previousTime >= 3000) {
+        lcd.print("Cup is ");
+        lcd.print(distanceToWater);
+        lcd.print("cm away");
+        previousTime = currentTime;
+      }
+        
+      if (distanceToWater > 3) {
+        for (int pos = 0; pos <= 45; pos++) {
+          servo1.write(pos);
+          delay(15);
+        }
       }
       
       for(int count = 0; count < TIMES_TO_DIP; count++) {
@@ -155,27 +162,30 @@ void loop() {
         setLedColor(0, 255, 0); // Green Color
       }
 
-      enterState(REMOVE_BAG);
+      enterState(State::REMOVE_BAG);
       
       break;
-    case REMOVE_BAG:
+    case State::REMOVE_BAG:
       lcd.clear();
 
       lcd.print(MSG_CLEANUP);
 
-      if (digitalRead(PIN_SWITCH) == HIGH) {
-        enterState(DONE);
+      if (digitalRead(PIN_SWITCH) == LOW) {
+        enterState(State::DONE);
       }
     
       break;
-    case DONE:
+    case State::DONE:
       lcd.clear();
 
       lcd.print(MSG_DONE);
       
       //delay(3000);
-      if (currentTime - previousTime >= 3000)
-        enterState(INITIAL);
+      currentTime = millis();
+      if (currentTime - previousTime >= 3000) {
+        previousTime = currentTime;
+        enterState(State::INITIAL);
+      }
       
       break;
   }
@@ -186,10 +196,6 @@ void enterState(State newState) {
   activeState = newState;
 }
 
-// define variables For LED
-//int redValue;
-//int greenValue;
-//int blueValue;
 void setLedColor(int redValue, int greenValue, int blueValue) {  
   analogWrite(PIN_LED_R, redValue);
   analogWrite(PIN_LED_G, greenValue);
