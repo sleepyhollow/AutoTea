@@ -44,12 +44,12 @@ const int PIN_LED_G = 50;
 const int PIN_LED_B = 48;
 
 // Message strings
-const String MSG_ATTACH_TEABAG = "Attach Teabag";
-const String MSG_DIPPING = "Dipping .......";
-const String MSG_WAIT = "Please Wait";
-const String MSG_DONE = "   Done!   ";
-const String MSG_CLEANUP = "Remove Teabag";
-const String MSG_THANK_YOU = "Thank You :) ";
+const String MSG_ATTACH_TEABAG = "Attach teabag";
+const String MSG_DIPPING = "Dipping...";
+const String MSG_WAIT = "Please wait";
+const String MSG_DONE = "Done!";
+const String MSG_CLEANUP = "Remove teabag";
+const String MSG_THANK_YOU = "Thank you :)";
 
 const int TIMES_TO_DIP = 3;
 
@@ -91,7 +91,9 @@ void setup() {
 
   // Set display's number of columns and rows
   lcd.begin(LCD_WIDTH, LCD_HEIGHT);
-   
+  // Set display's cursor style to a block
+  lcd.blink();
+  
   // Set stepper speed at 20rpm
   stepper1.setSpeed(20);
   
@@ -101,15 +103,16 @@ void setup() {
   pinMode(PIN_LED_G, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
   // LOW means switch is pressed
-  pinMode(PIN_SWITCH, INPUT_PULLUP); 
+  pinMode(PIN_SWITCH, INPUT_PULLUP);
 }
 
 void loop() {
   switch (activeState) {
     case State::INITIAL:
-      lcd.clear();
-      
+      lcd.setCursor(0, 0);
       lcd.print("AutoTea");
+
+      // Move motors to initial positions
       stepper1.step(STEPPER_STEPS_PER_REV);
 
       //delay(3000);
@@ -121,9 +124,8 @@ void loop() {
         
       break;
     case State::WAIT_FOR_BAG:
-      lcd.clear();
-      
       // prompt user to place teabag
+      lcd.setCursor(0, 0);
       lcd.print(MSG_ATTACH_TEABAG);
 
       if (digitalRead(PIN_SWITCH) == LOW) {
@@ -133,15 +135,14 @@ void loop() {
       break;
       
     case State::DIPPING:
-      lcd.clear();
-      
+      lcd.setCursor(0, 0);
       lcd.print(MSG_DIPPING);
-      setLedColor(0, 255, 0);
 
       distanceToWater = waterSensor.Distance();
         
       currentTime = millis();
       if (currentTime - previousTime >= 3000) {
+        lcd.setCursor(0, 1);
         lcd.print("Cup is ");
         lcd.print(distanceToWater);
         lcd.print("cm away");
@@ -166,8 +167,7 @@ void loop() {
       
       break;
     case State::REMOVE_BAG:
-      lcd.clear();
-
+      lcd.setCursor(0, 0);
       lcd.print(MSG_CLEANUP);
 
       if (digitalRead(PIN_SWITCH) == LOW) {
