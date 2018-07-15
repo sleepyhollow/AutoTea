@@ -13,8 +13,6 @@ enum class State {
   DONE
 };
 
-const int LCD_WIDTH = 16;
-const int LCD_HEIGHT = 2;
 const int PIN_LCD_RS = 7;
 const int PIN_LCD_EN = 8;
 const int PIN_LCD_D4 = 9;
@@ -26,7 +24,7 @@ const int PIN_STEPPER1_1 = 2;
 const int PIN_STEPPER1_2 = 4;
 const int PIN_STEPPER1_3 = 3;
 const int PIN_STEPPER1_4 = 5;
-// Steps per revolution [default 1500]
+// Steps per revolution, specific per motor model
 const int STEPPER_STEPS_PER_REV = 1500;
 
 const int PIN_SERVO = 51;
@@ -43,13 +41,15 @@ const int PIN_LED_R = 52;
 const int PIN_LED_G = 50;
 const int PIN_LED_B = 48;
 
-// Message strings
 const String MSG_ATTACH_TEABAG = "Attach teabag";
 const String MSG_DIPPING = "Dipping...";
 const String MSG_WAIT = "Please wait";
 const String MSG_DONE = "Done!";
 const String MSG_CLEANUP = "Remove teabag";
 const String MSG_THANK_YOU = "Thank you :)";
+
+const int LCD_WIDTH = 16;
+const int LCD_HEIGHT = 2;
 
 const int TIMES_TO_DIP = 3;
 
@@ -94,7 +94,8 @@ void setup() {
   // Set display's cursor style to a block
   lcd.blink();
   
-  // Set stepper speed at 20rpm
+  // For more responsiveness, use high stepper speed and loop step()
+  // with a small number of steps per step() call
   stepper1.setSpeed(20);
   
   servo1.attach(PIN_SERVO);
@@ -102,7 +103,8 @@ void setup() {
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_G, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
-  // LOW means switch is pressed
+  
+  // Pin reads LOW when switch is closed
   pinMode(PIN_SWITCH, INPUT_PULLUP);
 }
 
@@ -112,7 +114,8 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("AutoTea");
 
-      // Move motors to initial positions
+      // Move motors to initial positions by moving through entire
+      // range of motion
       stepper1.step(STEPPER_STEPS_PER_REV);
 
       //delay(3000);
