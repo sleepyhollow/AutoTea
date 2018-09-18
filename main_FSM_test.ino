@@ -29,7 +29,6 @@ const int STEPPER_STEPS_PER_REV = 1500;
 
 const int PIN_SERVO = 51;
 
-// For the ultrasonic sensor
 const int PIN_WATER_SENSOR_ECHO = 6;
 const int PIN_WATER_SENSOR_TRIG = 13;
 const int PIN_CUP_SENSOR_ECHO = 24;
@@ -41,6 +40,7 @@ const int PIN_LED_R = 52;
 const int PIN_LED_G = 50;
 const int PIN_LED_B = 48;
 
+const String MSG_TITLE = "AutoTea";
 const String MSG_ATTACH_TEABAG = "Attach teabag";
 const String MSG_DIPPING = "Dipping...";
 const String MSG_WAIT = "Please wait";
@@ -60,7 +60,7 @@ static long previousTime;
 int distanceToWater;
 int distanceToCup;
 
-// Initialize display
+// Initialize devices
 LiquidCrystal lcd(PIN_LCD_RS,
                   PIN_LCD_EN,
                   PIN_LCD_D4,
@@ -94,8 +94,8 @@ void setup() {
   // Set display's cursor style to a block
   lcd.blink();
   
-  // For more responsiveness, use high stepper speed and loop step()
-  // with a small number of steps per step() call
+  // For more responsiveness, use high stepper speed and loop step() calls
+  // with a small number of steps per call
   stepper1.setSpeed(20);
   
   servo1.attach(PIN_SERVO);
@@ -108,16 +108,28 @@ void setup() {
   pinMode(PIN_SWITCH, INPUT_PULLUP);
 }
 
+// Need to further adapt to FSM
+// Since the program is not sequential as before
+// E.g.: motor movement shouldn't be done by moving the entire desired
+// distance in one statement. Instead, move in small steps everytime the loop() runs,
+// until the total distance moved has reached the desired distance.
+// See the wait time implementation (probably still needs work) for another example.
+// Instead of delay(3000), during which the program is not responsive, 
+// compare the elapsed time (which advances a small amount every loop)
+// to the desired delay.
 void loop() {
   switch (activeState) {
     case State::INITIAL:
+      // Display project name
       lcd.setCursor(0, 0);
-      lcd.print("AutoTea");
+      lcd.print(MSG_TITLE);
 
-      // Move motors to initial positions by moving through entire
-      // range of motion
+      // Move motors to initial positions by moving through
+      // entire range of motion
+      // May change depending on size of gear attached to motor
       stepper1.step(STEPPER_STEPS_PER_REV);
 
+      // Wait and enter next state: waiting for bag
       //delay(3000);
       currentTime = millis();
       if (currentTime - previousTime >= 3000) {
@@ -127,10 +139,11 @@ void loop() {
         
       break;
     case State::WAIT_FOR_BAG:
-      // prompt user to place teabag
+      // Prompt user to place teabag
       lcd.setCursor(0, 0);
       lcd.print(MSG_ATTACH_TEABAG);
 
+      // User pushes a button to start dipping
       if (digitalRead(PIN_SWITCH) == LOW) {
         enterState(State::DIPPING);
       }
@@ -141,6 +154,8 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print(MSG_DIPPING);
 
+      // Need to figure out the dipping logic
+      
       distanceToWater = waterSensor.Distance();
         
       currentTime = millis();
@@ -170,9 +185,11 @@ void loop() {
       
       break;
     case State::REMOVE_BAG:
+      // Prompt user to remove bag
       lcd.setCursor(0, 0);
       lcd.print(MSG_CLEANUP);
 
+      // User pushes a button to signal bag removal is done
       if (digitalRead(PIN_SWITCH) == LOW) {
         enterState(State::DONE);
       }
@@ -183,6 +200,7 @@ void loop() {
 
       lcd.print(MSG_DONE);
       
+      // Wait and go back to initial state
       //delay(3000);
       currentTime = millis();
       if (currentTime - previousTime >= 3000) {
