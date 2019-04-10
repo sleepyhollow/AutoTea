@@ -5,6 +5,7 @@
 //https://github.com/BretStateham/28BYJ-48/tree/master/Arduino/Code
 
 // States of finite state machine
+
 enum class State {
   INITIAL,
   WAIT_FOR_BAG,
